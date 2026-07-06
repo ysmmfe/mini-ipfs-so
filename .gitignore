@@ -1,0 +1,15 @@
+ipfs_add
+ipfs_get
+ipfs_daemon
+ipfs_fetch
+*.o
+*.out
+repo/
+nodeA/
+nodeB/
+**/repo/
+*.log
+*.tmp
+teste*.txt
+*.received
+.DS_Store
