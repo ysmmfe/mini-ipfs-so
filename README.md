@@ -5,7 +5,7 @@
 **Equipe:**  
 Yasmim Ferreira dos Santos - 600736
 Antonio Marcos Justino Carneiro - 511911
-
+Arthur Lopes Pamplona - 570357
 ## Introdução
 
 Este projeto implementa um mini-IPFS em C, escrito para a disciplina de Sistemas
