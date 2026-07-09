@@ -1,12 +1,13 @@
-# mini-IPFS — Sistema de Blocos Endereçados por Conteúdo em C
+# mini-IPFS
 
 **Disciplina:** Sistemas Operacionais  
 **Período:** 2026.1  
 **Equipe:**  
-Yasmim Ferreira dos Santos - 600736
-Antonio Marcos Justino Carneiro - 511911
-Arthur Lopes Pamplona - 570357
-Gustavo Moraes Teles - 570387
+Yasmim Ferreira dos Santos - 600736   
+Antonio Marcos Justino Carneiro - 511911   
+Arthur Lopes Pamplona - 570357   
+Gustavo Moraes Teles - 570387   
+
 ## Introdução
 
 Este projeto implementa um mini-IPFS em C, escrito para a disciplina de Sistemas
@@ -29,10 +30,10 @@ e comunicação em rede, usando o IPFS como caso de estudo.
 - Transferir blocos entre dois nós via TCP.
 - Mapear cada operação do programa às syscalls correspondentes.
 
-## O que é o IPFS (em um parágrafo)
+## O que é o IPFS
 
 O IPFS (*InterPlanetary File System*) é um protocolo P2P de armazenamento e distribuição de
-arquivos em que cada conteúdo é identificado pelo hash de si mesmo — o CID — em vez de por uma
+arquivos em que cada conteúdo é identificado pelo hash de si mesmo - o CID - em vez de por uma
 localização (como uma URL). Isso significa que o mesmo conteúdo tem sempre o mesmo endereço, e
 qualquer nó da rede que o possua pode servi-lo a quem pedir.
 
@@ -48,63 +49,11 @@ O projeto tem 4 programas independentes, todos operando sobre a mesma pasta `rep
 - **`ipfs_fetch <ip> <cid>`**: conecta a um `ipfs_daemon` remoto, pede um CID, valida a
   integridade do que recebeu e salva em `repo/blocks/<cid>` local.
 
-```mermaid
-flowchart LR
-    U[Usuario] -->|arquivo.txt| ADD[ipfs_add]
-    ADD -->|conteudo| SHA[SHA-256]
-    SHA -->|CID hex| ADD
-    ADD -->|grava bloco| REPOA[(repo/blocks - No A)]
-    U -->|CID| GET[ipfs_get]
-    REPOA --> GET
-    GET -->|conteudo| U
+<img src="img/mermaid-diagram-1783600968923.png" alt="Flowchart do funcionamento">
 
-    subgraph NoA[No A]
-        REPOA
-        DAEMON[ipfs_daemon :8080]
-        REPOA --> DAEMON
-    end
-
-    subgraph NoB[No B]
-        FETCH[ipfs_fetch]
-        REPOB[(repo/blocks - No B)]
-        FETCH --> REPOB
-    end
-
-    DAEMON <-->|socket TCP :8080| FETCH
-```
-
-```mermaid
-flowchart TB
-    subgraph USER[Espaco de usuario]
-        P1[ipfs_add]
-        P2[ipfs_get]
-        P3[ipfs_daemon]
-        P4[ipfs_fetch]
-    end
-
-    subgraph KERNEL[Kernel]
-        VFS[VFS - Sistema de Arquivos]
-        TCP[Pilha TCP/IP]
-    end
-
-    DISK[(Disco - repo/blocks)]
-    NET((Rede))
-
-    P1 -->|open read write mkdir| VFS
-    P2 -->|open read write| VFS
-    P3 -->|open read| VFS
-    P4 -->|open write mkdir| VFS
-    VFS --> DISK
-
-    P3 -->|socket bind listen accept recv send| TCP
-    P4 -->|socket connect send recv| TCP
-    TCP --> NET
-```
+<img src="img/mermaid-diagram-1783601381260.png" alt="Flowchart das chamadas de sisterma">
 
 ## Chamadas de sistema
-
-> **Distinção importante:** `send`/`recv` **são** syscalls de socket. Já `SHA256`, `inet_pton`,
-> `htons`, `snprintf`, `malloc` **não são** syscalls — são funções de biblioteca (libc/OpenSSL).
 
 | Chamada de sistema | Arquivos                        | Papel no projeto                | Relação com o SO |
 |---------------------|----------------------------------|----------------------------------|--------------------|
@@ -125,9 +74,20 @@ flowchart TB
 
 ## Compilação
 
+Cada programa é compilado individualmente com `gcc`. `ipfs_add` e `ipfs_fetch` usam SHA-256
+(OpenSSL), por isso precisam da flag `-lcrypto` no final:
+
 ```bash
-make          # compila os 4 binarios
-make clean    # remove binarios e as pastas repo/ geradas nos testes
+gcc -Wall -Wextra -std=c11 -g ipfs_add.c common.c -o ipfs_add -lcrypto
+gcc -Wall -Wextra -std=c11 -g ipfs_get.c common.c -o ipfs_get
+gcc -Wall -Wextra -std=c11 -g ipfs_daemon.c common.c -o ipfs_daemon
+gcc -Wall -Wextra -std=c11 -g ipfs_fetch.c common.c -o ipfs_fetch -lcrypto
+```
+
+Para limpar os binários gerados:
+
+```bash
+rm -f ipfs_add ipfs_get ipfs_daemon ipfs_fetch
 ```
 
 ## Uso de cada programa
@@ -145,19 +105,21 @@ make clean    # remove binarios e as pastas repo/ geradas nos testes
 cada uma com seu próprio `repo/blocks/`. Nunca rode o daemon e o fetch na mesma pasta, ou o teste
 não prova nada (o bloco já estaria lá).
 
-Rode `./demo.sh` para um roteiro guiado (com pausas) que reproduz o cenário completo: content
-addressing, determinismo, efeito avalanche, e a troca de blocos entre dois nós via TCP.
-
-## Testes
+Exemplo de roteiro manual (dois terminais, duas pastas diferentes simulando dois nós):
 
 ```bash
-make test     # compila e roda a suite de testes automatizados (tests.sh)
-```
+# Terminal 1 - No A (tem o arquivo)
+mkdir noA && cd noA
+cp ../ipfs_add ../ipfs_daemon .
+echo "ola mundo" > arquivo.txt
+./ipfs_add arquivo.txt          # anota o CID impresso
+./ipfs_daemon                    # sobe o servidor na porta 8080
 
-A suite cobre: erros de uso (arquivo/CID inexistente), determinismo do hash, efeito avalanche,
-arquivos grandes e binários (comparados byte a byte via `cmp`/`sha256sum`), criação automática de
-diretórios, bloqueio de path traversal e o ciclo completo de rede (fetch sem daemon, transferência,
-verificação de integridade, erro tratado sem corromper bloco).
+# Terminal 2 - No B (quer o arquivo)
+mkdir noB && cd noB
+cp ../ipfs_fetch .
+./ipfs_fetch 127.0.0.1 <CID>     # busca, verifica integridade e salva
+```
 
 ## Limitações conhecidas
 

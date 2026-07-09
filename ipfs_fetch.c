@@ -49,8 +49,7 @@ int main(int argc, char *argv[]) {
         perror("send"); close(sock); return 1;
     }
 
-    // 5. Ler o byte de status ANTES de decidir se ha algo para salvar
-    //    (mesmo protocolo do daemon: status separado do conteudo).
+    // 5. Ler o byte de status ANTES de decidir se ha algo para salvar.
     unsigned char status;
     ssize_t lido_status = recv(sock, &status, 1, 0);
     if (lido_status <= 0) {
@@ -94,8 +93,8 @@ int main(int argc, char *argv[]) {
     close(sock);
 
     // 7. Verificar integridade: o hash do que chegou precisa bater com o
-    //    CID pedido. Sem isso, o content addressing nao e honrado no
-    //    transporte (corrige M3) — um bloco corrompido nunca e salvo.
+    //    CID pedido. Sem isso, o content addressing não é honrado no
+    //    transporte, dessa forma um bloco corrompido nunca é salvo.
     unsigned char hash[SHA256_DIGEST_LENGTH];
     SHA256(conteudo, tamanho, hash);
     char hash_hex[CID_TAM + 1];

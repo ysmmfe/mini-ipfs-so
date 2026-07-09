@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
     hash_para_hex(hash, hash_hex);
 
     // 5. Criar diretorios do repositorio (syscall mkdir). Falhar aqui
-    //    porque a pasta ja existe (EEXIST) e esperado e inofensivo.
+    //    porque a pasta ja existe (EEXIST) é esperado e inofensivo.
     mkdir("repo", 0755);
     mkdir("repo/blocks", 0755);
 
