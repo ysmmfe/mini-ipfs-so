@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     }
 
     // 0. Validar o CID antes de usa-lo em qualquer caminho de arquivo
-    //    ou de manda-lo pela rede (mesma defesa do lado do cliente).
+    // ou de manda-lo pela rede (mesma defesa do lado do cliente).
     if (!validar_cid(argv[2])) {
         fprintf(stderr, "CID invalido: precisa ter %d caracteres hexadecimais\n", CID_TAM);
         return 1;
@@ -93,8 +93,7 @@ int main(int argc, char *argv[]) {
     close(sock);
 
     // 7. Verificar integridade: o hash do que chegou precisa bater com o
-    //    CID pedido. Sem isso, o content addressing não é honrado no
-    //    transporte, dessa forma um bloco corrompido nunca é salvo.
+    // CID pedido.
     unsigned char hash[SHA256_DIGEST_LENGTH];
     SHA256(conteudo, tamanho, hash);
     char hash_hex[CID_TAM + 1];

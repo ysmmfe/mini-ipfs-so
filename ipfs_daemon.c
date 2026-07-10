@@ -3,7 +3,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <arpa/inet.h>   // sockets
+#include <arpa/inet.h>
 #include "common.h"
 
 #define PORTA 8080
@@ -12,7 +12,7 @@
 
 // Le o CID enviado pelo cliente. O CID tem tamanho fixo (CID_TAM), mas o
 // TCP pode entregar os bytes fragmentados em varios recv(); por isso lemos
-// em loop ate completar CID_TAM bytes (ou a conexao fechar).
+// em loop ate completar CID_TAM bytes.
 static int receber_cid(int cliente, char *cid) {
     size_t recebidos = 0;
     while (recebidos < CID_TAM) {
@@ -62,7 +62,6 @@ int main() {
         char cid[CID_TAM + 1];
         if (receber_cid(cliente, cid) < 0 || !validar_cid(cid)) {
             // CID invalido ou incompleto: nunca chega a tocar no disco.
-            // Isso e o que bloqueia o path traversal (M1).
             unsigned char status = STATUS_ERRO;
             enviar_tudo(cliente, &status, 1);
             fprintf(stderr, "Pedido rejeitado: CID invalido\n");
@@ -77,8 +76,6 @@ int main() {
         int fd = open(caminho, O_RDONLY);
 
         if (fd < 0) {
-            // Protocolo: 1 byte de status ANTES do payload. Erro nunca
-            // e confundido com conteudo do lado do cliente (corrige M2).
             unsigned char status = STATUS_ERRO;
             enviar_tudo(cliente, &status, 1);
         } else {

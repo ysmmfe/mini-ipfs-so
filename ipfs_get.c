@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <fcntl.h>      // open
-#include <unistd.h>     // read, write, close
+#include <fcntl.h>
+#include <unistd.h>
 #include "common.h"
 
 int main(int argc, char *argv[]) {
@@ -11,7 +11,6 @@ int main(int argc, char *argv[]) {
     }
 
     // 0. Validar o CID: precisa ser exatamente 64 caracteres hexadecimais.
-    //    Isso impede que algo como "../../etc/passwd" vire caminho de arquivo.
     if (!validar_cid(argv[1])) {
         fprintf(stderr, "CID invalido: precisa ter %d caracteres hexadecimais\n", CID_TAM);
         return 1;
